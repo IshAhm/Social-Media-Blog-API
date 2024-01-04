@@ -52,4 +52,12 @@ public class SocialMediaService {
     public List<Message> getAllMessages(){
         return smDAO.getAllMessages();
     }
+
+    public Message getMessageByID(int msgID){
+        return smDAO.getMessageByID(msgID);
+    }
+
+    public Message deleteMessageByID(int msgID){
+        return smDAO.deleteMessageByID(msgID);
+    }
 }
