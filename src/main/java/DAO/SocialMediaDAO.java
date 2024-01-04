@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import Model.Account;
+import Model.Message;
 
 
 public class SocialMediaDAO {
@@ -15,7 +16,7 @@ public class SocialMediaDAO {
         Connection connection = ConnectionUtil.getConnection();
         try {
             
-            String sql = "INSERT INTO Account (username, password) VALUES (?,?)" ;
+            String sql = "INSERT INTO account (username, password) VALUES (?,?)" ;
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
             //write preparedStatement's setString and setInt methods here.
@@ -39,7 +40,7 @@ public class SocialMediaDAO {
 
         try {
             
-            String sql = "SELECT * FROM flight WHERE username = '?' AND password = '?';";
+            String sql = "SELECT * FROM account WHERE username = ? AND password = ?;";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
 
             preparedStatement.setString(1, user.getUsername());
@@ -59,10 +60,100 @@ public class SocialMediaDAO {
         return null;
     }
 
-    public Message postNewMessage(Message message){
+    public Boolean userExistsByID(int userID){
         Connection connection = ConnectionUtil.getConnection();
 
+        try {
+            
+            String sql = "SELECT * FROM account WHERE account_id = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            preparedStatement.setInt(1, userID);
+
+            ResultSet rs = preparedStatement.executeQuery();
+            if(rs.next()){
+                return true;
+            } else{
+                return false;
+            }
+
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return null;
+
+    }
+
+    public Boolean userExistsByUsername(String username){
+        Connection connection = ConnectionUtil.getConnection();
+
+        try {
+            
+            String sql = "SELECT * FROM account WHERE username = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            preparedStatement.setString(1, username);
+
+            ResultSet rs = preparedStatement.executeQuery();
+            if(rs.next()){
+                return true;
+            } else{
+                return false;
+            }
+
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return null;
+
+    }
+    
+    
+    public Message postNewMessage(Message message){
+        Connection connection = ConnectionUtil.getConnection();
         
+        try{
+            String sql = "INSERT INTO message(posted_by, message_text, time_posted_epoch) VALUES(?,?,?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+            //write preparedStatement's setString and setInt methods here.
+            preparedStatement.setInt(1, message.getPosted_by());
+            preparedStatement.setString(2, message.getMessage_text());
+            preparedStatement.setLong(3, message.getTime_posted_epoch());
+
+            preparedStatement.executeUpdate();
+            ResultSet pkeyResultSet = preparedStatement.getGeneratedKeys();
+            if(pkeyResultSet.next()){
+                int generated_message_id = (int) pkeyResultSet.getLong(1);
+                return new Message(generated_message_id, message.getPosted_by(), message.getMessage_text(), message.getTime_posted_epoch());
+            }
+
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return null;
+        
+    }
+
+    public List<Message> getAllMessages(){
+        Connection connection = ConnectionUtil.getConnection();
+        List<Message> messages = new ArrayList<Message>();
+
+        try{
+            String sql = "SELECT * FROM message;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        
+            ResultSet rs = preparedStatement.executeQuery();
+            while(rs.next()){
+                Message message = new Message(rs.getInt("message_id"), rs.getInt("posted_by"), rs.getString("message_text"), rs.getLong("time_posted_epoch"));
+                messages.add(message);
+            }
+            
+
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return messages;
     }
 
 }

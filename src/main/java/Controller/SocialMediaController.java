@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Model.Account;
+import Model.Message;
 import Service.SocialMediaService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
@@ -30,7 +31,8 @@ public class SocialMediaController {
 
         app.post("/register",this::postUserHandler);
         app.post("/login", this::loginHandler);
-
+        app.post("/messages", this::postMessageHandler);
+        app.get("/messages", this::getAllMessagesHandler);
         return app;
     }
 
@@ -46,8 +48,7 @@ public class SocialMediaController {
         ObjectMapper mapper = new ObjectMapper();
         Account user = mapper.readValue(ctx.body(), Account.class);
         Account addedUser = smService.addNewAccount(user);
-
-        if(addedUser == null){
+        if(addedUser == null || addedUser.getUsername().length() == 0){
             ctx.status(400);
         } else{
             ctx.json(mapper.writeValueAsString(addedUser));
@@ -67,6 +68,29 @@ public class SocialMediaController {
             ctx.json(mapper.writeValueAsString(loginnedAccount));
             ctx.status(200);
         }
+    }
+
+    private void postMessageHandler(Context ctx) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        Message newMessage = mapper.readValue(ctx.body(), Message.class);
+
+        if(newMessage.getMessage_text().length() == 0 || newMessage.getMessage_text().length() > 255){
+            ctx.status(400);
+        }
+
+        Message postedMessage = smService.newMessage(newMessage);
+        if(postedMessage == null){
+            ctx.status(400);
+        } else{
+            ctx.json(mapper.writeValueAsString(postedMessage));
+            ctx.status(200);
+        }
+
+    }
+
+    private void getAllMessagesHandler(Context ctx) throws JsonProcessingException{
+        ObjectMapper mapper = new ObjectMapper();
+        ctx.json(mapper.writeValueAsString(smService.getAllMessages()));
     }
 
 
