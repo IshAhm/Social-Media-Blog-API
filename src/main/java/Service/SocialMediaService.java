@@ -60,4 +60,15 @@ public class SocialMediaService {
     public Message deleteMessageByID(int msgID){
         return smDAO.deleteMessageByID(msgID);
     }
+    
+    public Message updateMessageByID(int msgID, String newMsgBody){
+        if(newMsgBody.length()>255 || newMsgBody.equals("")){
+            return null;
+        }
+        return smDAO.updateMessageByID(msgID, newMsgBody);
+    }
+
+    public List<Message> getAllMessagesByAccountID(int accountID){
+        return smDAO.getAllMessagesByAccountID(accountID);
+    }
 }
